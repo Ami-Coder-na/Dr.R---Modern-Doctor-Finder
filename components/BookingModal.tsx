@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Doctor } from '../types';
-import { X, Calendar, Clock, User, Phone, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import { X, Calendar, Clock, User, Phone, CheckCircle, ChevronRight, ChevronLeft, Bell } from 'lucide-react';
 
 interface BookingModalProps {
   doctor: Doctor | null;
@@ -12,7 +12,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
   const [step, setStep] = useState(1); // 1: Schedule, 2: Personal Info, 3: Confirmation
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [formData, setFormData] = useState({ name: '', phone: '', email: '', reason: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', reason: '', remindMe: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Generate next 7 days dynamically
@@ -56,7 +56,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
       setStep(1);
       setSelectedDate('');
       setSelectedTime('');
-      setFormData({ name: '', phone: '', email: '', reason: '' });
+      setFormData({ name: '', phone: '', email: '', reason: '', remindMe: false });
       setIsSubmitting(false);
       onClose();
   };
@@ -224,6 +224,26 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
                                     placeholder="Briefly describe your symptoms or reason for visit..."
                                 />
                             </div>
+
+                             {/* Reminder Toggle */}
+                            <label className="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.remindMe ? 'bg-primary-600 border-primary-600' : 'border-slate-300 bg-white'}`}>
+                                    {formData.remindMe && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                                </div>
+                                <input 
+                                    type="checkbox" 
+                                    className="hidden" 
+                                    checked={formData.remindMe}
+                                    onChange={(e) => setFormData({...formData, remindMe: e.target.checked})}
+                                />
+                                <div className="flex-1">
+                                    <div className="flex items-center text-sm font-bold text-slate-900">
+                                        <Bell className="w-4 h-4 mr-2 text-primary-500" />
+                                        Get Booking Reminder
+                                    </div>
+                                    <p className="text-xs text-slate-500">We'll send you a notification 1 hour before the appointment.</p>
+                                </div>
+                            </label>
                         </div>
                     </div>
                 )}
@@ -236,11 +256,19 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
                             <CheckCircle className="w-12 h-12 text-green-600" />
                         </div>
                         <h3 className="text-3xl font-bold text-slate-900 mb-4">Booking Successful!</h3>
-                        <p className="text-slate-500 text-lg max-w-sm mx-auto mb-10 leading-relaxed">
+                        <p className="text-slate-500 text-lg max-w-sm mx-auto mb-6 leading-relaxed">
                             Your appointment with <span className="font-bold text-slate-900">Dr. {doctor.name}</span> is confirmed for <br/>
                             <span className="text-primary-600 font-bold">{selectedDate}</span> at <span className="text-primary-600 font-bold">{selectedTime}</span>.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        
+                        {formData.remindMe && (
+                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-full text-sm font-semibold mb-8">
+                                <Bell className="w-4 h-4" />
+                                Reminder set for 1 hour before
+                             </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-2">
                             <button className="px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-1">
                                 Add to Calendar
                             </button>

@@ -18,8 +18,11 @@ import DoctorDetails from './components/DoctorDetails';
 import UserProfile from './components/UserProfile';
 import AuthModal from './components/AuthModal';
 import ScrollToTop from './components/ScrollToTop';
+import MedicinePage from './components/MedicinePage';
+import ServicesPage from './components/ServicesPage';
+import BlogPage from './components/BlogPage';
 import { Doctor, Specialty } from './types';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 
 // Mock Data
 const MOCK_DOCTORS: Doctor[] = [
@@ -130,7 +133,7 @@ const MOCK_DOCTORS: Doctor[] = [
 ];
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact'>('home');
   const [selectedCategory, setSelectedCategory] = useState<Specialty | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [doctorForDetails, setDoctorForDetails] = useState<Doctor | null>(null);
@@ -191,7 +194,7 @@ export default function App() {
     });
   }, [selectedCategory, doctors, searchQuery, genderFilter, priceRange]);
 
-  const handleNavigate = (page: 'home' | 'doctors' | 'user-profile') => {
+  const handleNavigate = (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact') => {
     setCurrentPage(page);
     if (page === 'home') setSelectedCategory(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -229,7 +232,7 @@ export default function App() {
     <AuthProvider>
       <div className="min-h-screen bg-slate-50 font-sans">
         <Navbar 
-          onNavigate={(page) => handleNavigate(page as 'home' | 'doctors' | 'user-profile')} 
+          onNavigate={handleNavigate} 
           onLoginClick={() => setIsAuthModalOpen(true)}
         />
         
@@ -240,24 +243,34 @@ export default function App() {
               onSelectCategory={handleCategorySelect} 
               selectedCategory={selectedCategory} 
             />
-            <div id="services">
-              <Features />
-            </div>
-            <div id="about">
-              <AboutSection />
-            </div>
+            <Features />
+            <AboutSection />
             <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
             <StatsSection />
             <TestimonialSection />
             <FAQSection />
-            <div id="contact">
-              <ContactSection />
-            </div>
+            <ContactSection />
           </>
         )}
 
-        {currentPage === 'user-profile' && (
-          <UserProfile />
+        {currentPage === 'user-profile' && <UserProfile />}
+        {currentPage === 'medicine' && <MedicinePage />}
+        {currentPage === 'services' && <ServicesPage />}
+        {currentPage === 'blog' && <BlogPage />}
+        
+        {currentPage === 'about' && (
+           <div className="pt-24 animate-fade-in">
+              <AboutSection />
+              <StatsSection />
+              <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
+           </div>
+        )}
+
+        {currentPage === 'contact' && (
+           <div className="pt-24 animate-fade-in">
+              <ContactSection />
+              <FAQSection />
+           </div>
         )}
 
         {currentPage === 'doctors' && (
@@ -455,16 +468,16 @@ export default function App() {
             <div>
               <h4 className="text-white font-semibold mb-6">Services</h4>
               <ul className="space-y-4 text-sm text-slate-400">
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Find Doctors</li>
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Video Consult</li>
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Symptom Check</li>
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Lab Tests</li>
+                  <li onClick={() => handleNavigate('doctors')} className="hover:text-primary-400 cursor-pointer transition-colors">Find Doctors</li>
+                  <li onClick={() => handleNavigate('medicine')} className="hover:text-primary-400 cursor-pointer transition-colors">Medicine Shop</li>
+                  <li onClick={() => handleNavigate('services')} className="hover:text-primary-400 cursor-pointer transition-colors">Our Services</li>
+                  <li onClick={() => handleNavigate('blog')} className="hover:text-primary-400 cursor-pointer transition-colors">Health Blog</li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-6">Company</h4>
               <ul className="space-y-4 text-sm text-slate-400">
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">About Us</li>
+                  <li onClick={() => handleNavigate('about')} className="hover:text-primary-400 cursor-pointer transition-colors">About Us</li>
                   <li className="hover:text-primary-400 cursor-pointer transition-colors">Careers</li>
                   <li className="hover:text-primary-400 cursor-pointer transition-colors">Privacy Policy</li>
                   <li className="hover:text-primary-400 cursor-pointer transition-colors">Terms of Service</li>

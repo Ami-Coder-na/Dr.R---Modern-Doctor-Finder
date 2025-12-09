@@ -1,18 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Stethoscope, ShoppingCart, Bell, Smartphone, Search, User, LogOut, Settings } from 'lucide-react';
+import { Menu, X, Stethoscope, ShoppingCart, Bell, Smartphone, Search, User, LogOut, Settings, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
-  onNavigate: (page: 'home' | 'doctors' | 'user-profile') => void;
+  onNavigate: (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact') => void;
   onLoginClick: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Profile Menu State
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Notification State
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  const { user, isAuthenticated, logout } = useAuth();
+
+  // Mock Notifications
+  const notifications = [
+    {
+      id: 1,
+      title: 'Appointment Reminder',
+      message: 'Upcoming visit with Dr. Sarah Smith tomorrow at 10:00 AM.',
+      time: '1 hour ago',
+      type: 'reminder',
+      read: false
+    },
+    {
+      id: 2,
+      title: 'Booking Confirmed',
+      message: 'Your appointment with Dr. Michael Brown is confirmed.',
+      time: '2 days ago',
+      type: 'success',
+      read: true
+    }
+  ];
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,10 +49,13 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
     };
     window.addEventListener('scroll', handleScroll);
     
-    // Click outside handler for profile menu
+    // Click outside handler for menus
     const handleClickOutside = (event: MouseEvent) => {
         if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
             setShowProfileMenu(false);
+        }
+        if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+            setShowNotifications(false);
         }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -43,11 +75,11 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
   const navLinks = [
     { name: 'Home', action: () => onNavigate('home') },
     { name: 'Find Doctors', action: () => onNavigate('doctors') },
-    { name: 'Medicine', action: () => {} },
-    { name: 'Services', action: () => {} },
-    { name: 'Blog', action: () => {} },
-    { name: 'About Us', action: () => {} },
-    { name: 'Contact', action: () => {} },
+    { name: 'Medicine', action: () => onNavigate('medicine') },
+    { name: 'Services', action: () => onNavigate('services') },
+    { name: 'Blog', action: () => onNavigate('blog') },
+    { name: 'About Us', action: () => onNavigate('about') },
+    { name: 'Contact', action: () => onNavigate('contact') },
   ];
 
   const handleLogout = () => {
@@ -94,10 +126,47 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
                 <ShoppingCart className="h-5 w-5" />
                 <span className="absolute top-1 right-1 h-2 w-2 bg-rose-500 rounded-full border border-white"></span>
               </button>
-              <button className="text-slate-500 hover:text-primary-600 transition-colors p-1.5 hover:bg-slate-50 rounded-full relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1.5 right-2 h-2 w-2 bg-primary-500 rounded-full animate-pulse"></span>
-              </button>
+              
+              {/* Notifications Dropdown */}
+              <div className="relative" ref={notificationRef}>
+                  <button 
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="text-slate-500 hover:text-primary-600 transition-colors p-1.5 hover:bg-slate-50 rounded-full relative"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-2 h-2 w-2 bg-primary-500 rounded-full animate-pulse"></span>
+                    )}
+                  </button>
+
+                  {showNotifications && (
+                      <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in origin-top-right z-50">
+                          <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                              <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
+                              <span className="text-xs text-primary-600 font-semibold cursor-pointer hover:underline">Mark all as read</span>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                              {notifications.map((notif) => (
+                                  <div key={notif.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors ${!notif.read ? 'bg-blue-50/50' : ''}`}>
+                                      <div className="flex gap-3">
+                                          <div className={`mt-1 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${notif.type === 'reminder' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
+                                              {notif.type === 'reminder' ? <Calendar className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                          </div>
+                                          <div>
+                                              <p className="text-sm font-semibold text-slate-900">{notif.title}</p>
+                                              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{notif.message}</p>
+                                              <p className="text-[10px] text-slate-400 mt-2">{notif.time}</p>
+                                          </div>
+                                      </div>
+                                  </div>
+                              ))}
+                          </div>
+                          <div className="p-2 text-center border-t border-slate-100">
+                              <button className="text-xs font-bold text-slate-500 hover:text-primary-600 py-1">View All Notifications</button>
+                          </div>
+                      </div>
+                  )}
+              </div>
             </div>
 
             {/* Buttons Group */}
@@ -124,7 +193,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
 
                       {/* Dropdown Menu */}
                       {showProfileMenu && (
-                          <div className="absolute right-0 top-full mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in origin-top-right">
+                          <div className="absolute right-0 top-full mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in origin-top-right z-50">
                               <div className="p-4 border-b border-slate-100 bg-slate-50">
                                   <p className="text-sm font-bold text-slate-900">{user.name}</p>
                                   <p className="text-xs text-slate-500 truncate">{user.email}</p>

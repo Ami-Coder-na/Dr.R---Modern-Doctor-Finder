@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Phone, MapPin, Droplet, Calendar, Clock, Edit2, Save, Camera, LogOut } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Droplet, Calendar, Clock, Edit2, Save, Camera, LogOut, Bell } from 'lucide-react';
 
 const UserProfile: React.FC = () => {
   const { user, updateProfile, logout } = useAuth();
@@ -22,12 +22,23 @@ const UserProfile: React.FC = () => {
   };
 
   const handleLogout = () => {
-    // In a real app you might want to redirect after logout
     if (confirm("Are you sure you want to log out?")) {
         logout();
         window.location.href = "/"; 
     }
   }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        updateProfile({ ...user, avatar: base64String });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="pt-32 pb-20 bg-slate-50 min-h-screen">
@@ -57,9 +68,10 @@ const UserProfile: React.FC = () => {
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                 </div>
                 {isEditing && (
-                  <button className="absolute bottom-0 right-1/3 bg-slate-900 text-white p-2 rounded-full shadow-md hover:bg-primary-600 transition-colors">
+                  <label className="absolute bottom-0 right-1/3 bg-slate-900 text-white p-2 rounded-full shadow-md hover:bg-primary-600 transition-colors cursor-pointer">
                     <Camera className="w-4 h-4" />
-                  </button>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                  </label>
                 )}
               </div>
 
@@ -126,7 +138,7 @@ const UserProfile: React.FC = () => {
                     label="Full Name" 
                     value={formData.name} 
                     isEditing={isEditing}
-                    onChange={(val) => setFormData({...formData, name: val})}
+                    onChange={(val: string) => setFormData({...formData, name: val})}
                 />
                 <InfoItem 
                     icon={Mail} 
@@ -140,14 +152,14 @@ const UserProfile: React.FC = () => {
                     label="Phone Number" 
                     value={formData.phone} 
                     isEditing={isEditing}
-                    onChange={(val) => setFormData({...formData, phone: val})}
+                    onChange={(val: string) => setFormData({...formData, phone: val})}
                 />
                 <InfoItem 
                     icon={MapPin} 
                     label="Location" 
                     value={formData.location} 
                     isEditing={isEditing}
-                    onChange={(val) => setFormData({...formData, location: val})}
+                    onChange={(val: string) => setFormData({...formData, location: val})}
                     placeholder="Add location"
                 />
                 <InfoItem 
@@ -155,7 +167,7 @@ const UserProfile: React.FC = () => {
                     label="Blood Group" 
                     value={formData.bloodGroup} 
                     isEditing={isEditing}
-                    onChange={(val) => setFormData({...formData, bloodGroup: val})}
+                    onChange={(val: string) => setFormData({...formData, bloodGroup: val})}
                     placeholder="Add blood group"
                 />
               </div>
@@ -168,8 +180,8 @@ const UserProfile: React.FC = () => {
                 <div className="space-y-4">
                     {/* Mock Data for Appointments */}
                     {[
-                        { doctor: 'Dr. Sarah Smith', type: 'Cardiologist', date: 'Oct 24, 2023', time: '10:00 AM', status: 'Completed', img: 'https://images.unsplash.com/photo-1559839734209-9f91b59f2eee?auto=format&fit=crop&q=80&w=100' },
-                        { doctor: 'Dr. Michael Brown', type: 'Neurologist', date: 'Nov 12, 2023', time: '02:30 PM', status: 'Upcoming', img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=100' }
+                        { doctor: 'Dr. Sarah Smith', type: 'Cardiologist', date: 'Oct 24, 2023', time: '10:00 AM', status: 'Completed', img: 'https://images.unsplash.com/photo-1559839734209-9f91b59f2eee?auto=format&fit=crop&q=80&w=100', hasReminder: false },
+                        { doctor: 'Dr. Michael Brown', type: 'Neurologist', date: 'Nov 12, 2023', time: '02:30 PM', status: 'Upcoming', img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=100', hasReminder: true }
                     ].map((apt, idx) => (
                         <div key={idx} className="flex flex-col md:flex-row items-center justify-between p-4 border border-slate-100 rounded-2xl hover:border-primary-200 transition-colors">
                             <div className="flex items-center gap-4 w-full md:w-auto mb-4 md:mb-0">
@@ -189,11 +201,18 @@ const UserProfile: React.FC = () => {
                                     <Clock className="w-4 h-4" />
                                     <span>{apt.time}</span>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold
-                                    ${apt.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}
-                                `}>
-                                    {apt.status}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                   {apt.status === 'Upcoming' && apt.hasReminder && (
+                                     <div className="text-yellow-500" title="Reminder Active">
+                                       <Bell className="w-4 h-4 fill-current" />
+                                     </div>
+                                   )}
+                                   <span className={`px-3 py-1 rounded-full text-xs font-bold
+                                      ${apt.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}
+                                   `}>
+                                      {apt.status}
+                                   </span>
+                                </div>
                             </div>
                         </div>
                     ))}
