@@ -8,7 +8,7 @@ interface HeroProps {
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800",
   "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=800"
+  "https://images.unsplash.com/photo-1594824476966-509f8169a5aa?auto=format&fit=crop&q=80&w=800"
 ];
 
 const Hero: React.FC<HeroProps> = ({ onSearchClick }) => {

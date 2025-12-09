@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Doctor } from '../types';
-import { X, Calendar, Clock, User, Phone } from 'lucide-react';
+import { X, Calendar, Clock, User, Phone, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface BookingModalProps {
   doctor: Doctor | null;
@@ -9,11 +9,30 @@ interface BookingModalProps {
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) => {
-  const [step, setStep] = useState(1); // 1: Select Time, 2: Details, 3: Success
+  const [step, setStep] = useState(1); // 1: Schedule, 2: Personal Info, 3: Confirmation
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [formData, setFormData] = useState({ name: '', phone: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', reason: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Generate next 7 days dynamically
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return {
+      full: d,
+      dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayNumber: d.getDate(),
+      display: d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+    };
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+        // Initialize with first date if not selected
+        if (!selectedDate) setSelectedDate(dates[0].display);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !doctor) return null;
 
@@ -21,86 +40,118 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
     if (step === 1 && selectedDate && selectedTime) {
         setStep(2);
     } else if (step === 2 && formData.name && formData.phone) {
-        // Simulate API call for booking
         setIsSubmitting(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 2000));
         setIsSubmitting(false);
         setStep(3);
     }
   };
 
+  const handleBack = () => {
+      if (step > 1) setStep(step - 1);
+  }
+
   const reset = () => {
       setStep(1);
       setSelectedDate('');
       setSelectedTime('');
-      setFormData({ name: '', phone: '' });
+      setFormData({ name: '', phone: '', email: '', reason: '' });
       setIsSubmitting(false);
       onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        
-        <div className="fixed inset-0 bg-slate-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={reset}></div>
+    <div className="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      {/* Backdrop */}
+      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity" aria-hidden="true" onClick={reset}></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        {/* Modal Panel */}
+        <div className="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full relative animate-fade-in-up">
             
-            {/* Header */}
-            <div className="flex justify-between items-center mb-5">
-                <h3 className="text-lg leading-6 font-medium text-slate-900" id="modal-title">
-                    {step === 3 ? 'Appointment Confirmed!' : `Book with ${doctor.name}`}
-                </h3>
-                <button onClick={reset} disabled={isSubmitting} className="text-slate-400 hover:text-slate-500 disabled:opacity-50">
-                    <X className="w-6 h-6" />
-                </button>
+            {/* Close Button */}
+            <button 
+                onClick={reset} 
+                className="absolute top-4 right-4 z-10 bg-white/50 hover:bg-slate-100 p-2 rounded-full transition-colors backdrop-blur-sm"
+            >
+                <X className="w-5 h-5 text-slate-500" />
+            </button>
+
+            {/* Left/Top Content (Summary Header) */}
+            <div className="bg-slate-50 border-b border-slate-100 px-6 py-6 sm:px-10">
+                <h2 className="text-2xl font-bold text-slate-900">
+                    {step === 3 ? 'Appointment Confirmed' : 'Book Appointment'}
+                </h2>
+                <div className="mt-4 flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    <img src={doctor.image} alt={doctor.name} className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm" />
+                    <div>
+                        <p className="font-bold text-slate-900 text-lg">{doctor.name}</p>
+                        <p className="text-sm text-primary-600 font-medium">{doctor.specialty}</p>
+                    </div>
+                </div>
+                
+                {/* Progress Steps */}
+                {step < 3 && (
+                    <div className="flex items-center mt-6">
+                        <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-primary-500' : 'bg-slate-200'}`}></div>
+                        <div className={`h-1.5 flex-1 rounded-full ml-2 transition-all duration-500 ${step >= 2 ? 'bg-primary-500' : 'bg-slate-200'}`}></div>
+                    </div>
+                )}
             </div>
 
-            {/* Content */}
-            <div className="mt-2">
+            {/* Main Content Area */}
+            <div className="px-6 py-6 sm:px-10">
                 
+                {/* Step 1: Schedule */}
                 {step === 1 && (
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Select Date</label>
-                            <div className="flex overflow-x-auto space-x-2 py-2 no-scrollbar">
-                                {[0,1,2,3,4].map(day => {
-                                    const date = new Date();
-                                    date.setDate(date.getDate() + day);
-                                    const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
-                                    return (
-                                        <button 
-                                            key={day}
-                                            onClick={() => setSelectedDate(dateStr)}
-                                            className={`flex-shrink-0 px-4 py-2 rounded-lg border text-sm font-medium ${
-                                                selectedDate === dateStr 
-                                                ? 'bg-primary-600 text-white border-primary-600' 
-                                                : 'bg-white text-slate-700 border-slate-300 hover:border-primary-500'
-                                            }`}
-                                        >
-                                            {dateStr}
-                                        </button>
-                                    );
-                                })}
+                    <div className="animate-fade-in">
+                        <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center">
+                            <Calendar className="w-5 h-5 mr-2 text-primary-500" />
+                            Select Date & Time
+                        </h3>
+                        
+                        {/* Dates Row */}
+                        <div className="mb-8">
+                            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                                {dates.map((d, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setSelectedDate(d.display)}
+                                        className={`flex-shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-2xl border transition-all duration-200
+                                            ${selectedDate === d.display 
+                                                ? 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-900/30 transform scale-105' 
+                                                : 'bg-white border-slate-200 text-slate-600 hover:border-primary-300 hover:bg-slate-50'
+                                            }
+                                        `}
+                                    >
+                                        <span className={`text-xs font-semibold uppercase tracking-wider mb-1 ${selectedDate === d.display ? 'text-slate-300' : 'text-slate-400'}`}>
+                                            {d.dayName}
+                                        </span>
+                                        <span className="text-2xl font-bold">{d.dayNumber}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
+                        {/* Times Grid */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Select Time</label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <label className="block text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Available Slots</label>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                                 {doctor.availability.map((time) => (
                                     <button
                                         key={time}
                                         onClick={() => setSelectedTime(time)}
-                                        className={`px-2 py-2 rounded-md border text-sm ${
-                                            selectedTime === time 
-                                            ? 'bg-primary-600 text-white border-primary-600' 
-                                            : 'bg-white text-slate-700 border-slate-300 hover:border-primary-500'
-                                        }`}
+                                        className={`py-3 px-3 rounded-xl text-sm font-semibold border transition-all duration-200 flex items-center justify-center
+                                            ${selectedTime === time 
+                                                ? 'bg-primary-50 border-primary-500 text-primary-700 ring-1 ring-primary-500 shadow-sm' 
+                                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                            }
+                                        `}
                                     >
+                                        <Clock className={`w-3.5 h-3.5 mr-2 ${selectedTime === time ? 'text-primary-600' : 'text-slate-400'}`} />
                                         {time}
                                     </button>
                                 ))}
@@ -109,105 +160,154 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
                     </div>
                 )}
 
+                {/* Step 2: Patient Info */}
                 {step === 2 && (
-                    <div className="space-y-4">
-                        <div className="bg-primary-50 p-4 rounded-lg flex items-center space-x-3 text-sm text-primary-800 mb-4">
-                            <Calendar className="w-4 h-4" /> <span>{selectedDate}</span>
-                            <Clock className="w-4 h-4 ml-2" /> <span>{selectedTime}</span>
+                    <div className="animate-fade-in">
+                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center gap-4 mb-8">
+                             <div className="bg-white p-3 rounded-xl text-blue-600 shadow-sm">
+                                <Calendar className="w-5 h-5" />
+                             </div>
+                             <div>
+                                 <p className="text-xs text-blue-600 font-bold uppercase tracking-wide">Appointment Time</p>
+                                 <p className="text-blue-900 font-bold text-lg">{selectedDate} • {selectedTime}</p>
+                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Full Name</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <User className="h-4 w-4 text-slate-400" />
+
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Patient Name</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                                        placeholder="Enter full name"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    disabled={isSubmitting}
-                                    className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-md py-2 border disabled:bg-slate-100"
-                                    placeholder="John Doe"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                />
                             </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Phone Number</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Phone className="h-4 w-4 text-slate-400" />
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                            className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                                            placeholder="(555) 000-0000"
+                                        />
+                                    </div>
                                 </div>
-                                <input
-                                    type="tel"
-                                    disabled={isSubmitting}
-                                    className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-md py-2 border disabled:bg-slate-100"
-                                    placeholder="+1 (555) 987-6543"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Email (Optional)</label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                                        placeholder="you@example.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Notes for Doctor</label>
+                                <textarea
+                                    value={formData.reason}
+                                    onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                                    rows={3}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all bg-slate-50 focus:bg-white resize-none"
+                                    placeholder="Briefly describe your symptoms or reason for visit..."
                                 />
                             </div>
                         </div>
                     </div>
                 )}
 
+                {/* Step 3: Success */}
                 {step === 3 && (
-                    <div className="text-center py-6">
-                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                            <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
+                    <div className="text-center py-10 animate-fade-in">
+                        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner relative">
+                            <div className="absolute inset-0 rounded-full border-4 border-green-50 animate-ping opacity-20"></div>
+                            <CheckCircle className="w-12 h-12 text-green-600" />
                         </div>
-                        <h3 className="text-lg leading-6 font-medium text-slate-900">Booking Successful!</h3>
-                        <p className="mt-2 text-sm text-slate-500">
-                            Dr. {doctor.name} will expect you on {selectedDate} at {selectedTime}.
+                        <h3 className="text-3xl font-bold text-slate-900 mb-4">Booking Successful!</h3>
+                        <p className="text-slate-500 text-lg max-w-sm mx-auto mb-10 leading-relaxed">
+                            Your appointment with <span className="font-bold text-slate-900">Dr. {doctor.name}</span> is confirmed for <br/>
+                            <span className="text-primary-600 font-bold">{selectedDate}</span> at <span className="text-primary-600 font-bold">{selectedTime}</span>.
                         </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button className="px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                                Add to Calendar
+                            </button>
+                            <button 
+                                onClick={reset}
+                                className="px-8 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                            >
+                                Close Window
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Footer Actions (Steps 1 & 2) */}
+                {step < 3 && (
+                    <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+                        {step === 1 ? (
+                            <button 
+                                onClick={reset}
+                                className="text-slate-500 font-semibold hover:text-slate-800 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={handleBack}
+                                className="flex items-center text-slate-600 font-bold hover:text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                            >
+                                <ChevronLeft className="w-5 h-5 mr-1" /> Back
+                            </button>
+                        )}
+
+                        <button
+                            onClick={handleNext}
+                            disabled={
+                                (step === 1 && (!selectedDate || !selectedTime)) || 
+                                (step === 2 && (!formData.name || !formData.phone)) ||
+                                isSubmitting
+                            }
+                            className={`flex items-center px-8 py-3.5 rounded-xl font-bold text-white transition-all duration-300 shadow-lg
+                                ${
+                                    (step === 1 && (!selectedDate || !selectedTime)) || 
+                                    (step === 2 && (!formData.name || !formData.phone)) ||
+                                    isSubmitting
+                                    ? 'bg-slate-300 shadow-none cursor-not-allowed'
+                                    : 'bg-primary-600 hover:bg-primary-700 hover:shadow-primary-500/30 transform hover:-translate-y-1'
+                                }
+                            `}
+                        >
+                            {isSubmitting ? (
+                                <div className="flex items-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Processing...
+                                </div>
+                            ) : (
+                                <>
+                                    {step === 1 ? 'Continue' : 'Confirm Booking'}
+                                    {step === 1 && <ChevronRight className="w-5 h-5 ml-2" />}
+                                </>
+                            )}
+                        </button>
                     </div>
                 )}
             </div>
-          </div>
-          <div className="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            {step < 3 ? (
-                <button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={isSubmitting || (step === 1 && (!selectedDate || !selectedTime)) || (step === 2 && (!formData.name || !formData.phone))}
-                    className={`w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm
-                        ${(isSubmitting || (step === 1 && (!selectedDate || !selectedTime)) || (step === 2 && (!formData.name || !formData.phone))) 
-                        ? 'bg-primary-300 cursor-not-allowed' 
-                        : 'bg-primary-600 hover:bg-primary-700'}`}
-                >
-                    {isSubmitting ? (
-                        <>
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Processing...
-                        </>
-                    ) : (
-                        step === 1 ? 'Next Details' : 'Confirm Booking'
-                    )}
-                </button>
-            ) : (
-                <button
-                    type="button"
-                    onClick={reset}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                    Close
-                </button>
-            )}
-            {step < 3 && (
-                <button
-                    type="button"
-                    onClick={reset}
-                    disabled={isSubmitting}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-                >
-                    Cancel
-                </button>
-            )}
-          </div>
         </div>
       </div>
     </div>

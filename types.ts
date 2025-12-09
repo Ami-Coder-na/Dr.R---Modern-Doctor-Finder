@@ -23,12 +23,23 @@ export interface Doctor {
   availability: string[];
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  location?: string;
+  bloodGroup?: string;
+}
+
 export interface Appointment {
   doctorId: string;
   date: string;
   time: string;
   patientName: string;
   patientPhone: string;
+  status: 'Upcoming' | 'Completed' | 'Cancelled';
 }
 
 export interface ChatMessage {

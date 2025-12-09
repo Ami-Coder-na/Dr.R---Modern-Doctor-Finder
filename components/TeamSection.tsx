@@ -26,7 +26,7 @@ const TEAM_DATA: Doctor[] = [
     id: 't2',
     name: 'Dr. Nancy',
     specialty: Specialty.ORTHOPEDIC, // Using Orthopedic as Surgeon proxy for types
-    image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400&h=400',
+    image: 'https://images.unsplash.com/photo-1594824476966-509f8169a5aa?auto=format&fit=crop&q=80&w=400&h=400',
     rating: 4.9,
     reviews: 210,
     experience: 15,
@@ -52,7 +52,7 @@ const TEAM_DATA: Doctor[] = [
     id: 't4',
     name: 'Dr. Nilla Roy',
     specialty: Specialty.GENERAL_PHYSICIAN, // Proxy for Gynecologist if not in Enum
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea860630?auto=format&fit=crop&q=80&w=400&h=400',
+    image: 'https://images.unsplash.com/photo-1559839734209-9f91b59f2eee?auto=format&fit=crop&q=80&w=400&h=400',
     rating: 4.9,
     reviews: 180,
     experience: 14,

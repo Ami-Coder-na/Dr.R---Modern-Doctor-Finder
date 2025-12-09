@@ -12,7 +12,7 @@ const AboutSection: React.FC = () => {
             {/* Main Image */}
             <div className="relative rounded-[2rem] overflow-hidden shadow-2xl mx-auto max-w-[500px] lg:max-w-full">
               <img 
-                src="https://images.unsplash.com/photo-1609840114035-1c290b7a9f9d?auto=format&fit=crop&q=80&w=800" 
+                src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=800" 
                 alt="Dental checkup procedure" 
                 className="w-full h-[600px] object-cover"
               />
@@ -34,7 +34,7 @@ const AboutSection: React.FC = () => {
             {/* Floating Card: Cardiologist Profile (Center Right) */}
             <div className="absolute top-1/2 -right-4 lg:-right-10 transform -translate-y-1/2 bg-white p-3 pr-6 rounded-2xl shadow-xl z-20 flex items-center gap-3 animate-float" style={{ animationDelay: '1.5s' }}>
               <div className="relative">
-                <img className="w-12 h-12 rounded-full object-cover" src="https://images.unsplash.com/photo-1559839734-2b71ea860630?auto=format&fit=crop&q=80&w=100&h=100" alt="Doctor" />
+                <img className="w-12 h-12 rounded-full object-cover" src="https://images.unsplash.com/photo-1559839734209-9f91b59f2eee?auto=format&fit=crop&q=80&w=100&h=100" alt="Doctor" />
                 <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5 border-2 border-white">
                   <Check className="w-2 h-2 text-white" />
                 </div>
