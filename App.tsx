@@ -26,11 +26,12 @@ import AllMedicinePage from './components/AllMedicinePage';
 import CheckoutPage from './components/CheckoutPage';
 import ServicesPage from './components/ServicesPage';
 import BlogPage from './components/BlogPage';
-import { Doctor, Specialty, Medicine } from './types';
-import { Search, Filter } from 'lucide-react';
+import AdminDashboard from './components/AdminDashboard';
+import { Doctor, Specialty, Medicine, AppointmentDisplay } from './types';
+import { Search, Filter, Lock } from 'lucide-react';
 
 // Mock Data
-const MOCK_DOCTORS: Doctor[] = [
+const INITIAL_DOCTORS: Doctor[] = [
   {
     id: '1',
     name: 'Dr. Sarah Smith',
@@ -137,8 +138,42 @@ const MOCK_DOCTORS: Doctor[] = [
   }
 ];
 
+const INITIAL_APPOINTMENTS: AppointmentDisplay[] = [
+  { 
+    id: 1,
+    doctor: 'Dr. Sarah Smith', 
+    specialty: 'Cardiologist', 
+    date: 'Oct 24, 2023', 
+    time: '10:00 AM', 
+    status: 'Completed', 
+    img: 'https://images.unsplash.com/photo-1559839734209-9f91b59f2eee?auto=format&fit=crop&q=80&w=100', 
+    location: 'New York Heart Center'
+  },
+  { 
+    id: 2,
+    doctor: 'Dr. Michael Brown', 
+    specialty: 'Neurologist', 
+    date: 'Nov 12, 2023', 
+    time: '02:30 PM', 
+    status: 'Upcoming', 
+    img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=100', 
+    location: 'City Neuro Institute',
+    hasReminder: true 
+  },
+  { 
+    id: 3,
+    doctor: 'Dr. Lisa Ray', 
+    specialty: 'Dentist', 
+    date: 'Dec 05, 2023', 
+    time: '09:00 AM', 
+    status: 'Upcoming', 
+    img: 'https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?auto=format&fit=crop&q=80&w=100', 
+    location: 'Bright Smiles Dental'
+  }
+];
+
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'medicine-details' | 'all-medicine' | 'checkout' | 'services' | 'blog' | 'about' | 'contact'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'medicine-details' | 'all-medicine' | 'checkout' | 'services' | 'blog' | 'about' | 'contact' | 'admin'>('home');
   const [selectedCategory, setSelectedCategory] = useState<Specialty | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [doctorForDetails, setDoctorForDetails] = useState<Doctor | null>(null);
@@ -150,27 +185,15 @@ export default function App() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Data
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
+  // Global Data State
+  const [doctors, setDoctors] = useState<Doctor[]>(INITIAL_DOCTORS);
+  const [appointments, setAppointments] = useState<AppointmentDisplay[]>(INITIAL_APPOINTMENTS);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
   const [priceRange, setPriceRange] = useState<number>(300);
-
-  // Simulate API data fetching
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      setIsLoadingDoctors(true);
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setDoctors(MOCK_DOCTORS);
-      setIsLoadingDoctors(false);
-    };
-
-    fetchDoctors();
-  }, []);
 
   // Filter logic
   const filteredDoctors = useMemo(() => {
@@ -206,6 +229,26 @@ export default function App() {
     setIsBookingModalOpen(true);
   };
 
+  const handleBookingConfirm = () => {
+    // In a real app, this would get data from the booking modal
+    // For now, we simulate adding an appointment
+    if (selectedDoctor) {
+      const newAppt: AppointmentDisplay = {
+        id: Math.floor(Math.random() * 10000),
+        doctor: selectedDoctor.name,
+        specialty: selectedDoctor.specialty,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: '10:00 AM',
+        status: 'Upcoming',
+        img: selectedDoctor.image,
+        location: selectedDoctor.location,
+        hasReminder: true
+      };
+      setAppointments([...appointments, newAppt]);
+    }
+    setIsBookingModalOpen(false);
+  }
+
   const handleViewDetails = (doctor: Doctor) => {
     setDoctorForDetails(doctor);
     setCurrentPage('doctor-details');
@@ -235,6 +278,18 @@ export default function App() {
     }
   };
 
+  if (currentPage === 'admin') {
+    return (
+      <AdminDashboard 
+        doctors={doctors}
+        setDoctors={setDoctors}
+        appointments={appointments}
+        setAppointments={setAppointments}
+        onLogout={() => setCurrentPage('home')}
+      />
+    );
+  }
+
   return (
     <AuthProvider>
       <CartProvider>
@@ -261,7 +316,7 @@ export default function App() {
             </>
           )}
 
-          {currentPage === 'user-profile' && <UserProfile />}
+          {currentPage === 'user-profile' && <UserProfile appointments={appointments} />}
           
           {currentPage === 'medicine' && (
             <MedicinePage 
@@ -528,20 +583,28 @@ export default function App() {
                 </ul>
               </div>
             </div>
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500 relative">
                 <p>© {new Date().getFullYear()} Dr.R Healthcare. All rights reserved.</p>
                 <div className="flex space-x-6 mt-4 md:mt-0">
                    <span className="cursor-pointer hover:text-white transition-colors">Twitter</span>
                    <span className="cursor-pointer hover:text-white transition-colors">LinkedIn</span>
                    <span className="cursor-pointer hover:text-white transition-colors">Instagram</span>
                 </div>
+                
+                {/* Admin Button */}
+                <button 
+                  onClick={() => setCurrentPage('admin')}
+                  className="absolute bottom-0 right-0 lg:right-auto lg:left-1/2 lg:-translate-x-1/2 opacity-20 hover:opacity-100 transition-opacity flex items-center gap-1 text-xs"
+                >
+                  <Lock className="w-3 h-3" /> Admin
+                </button>
             </div>
           </footer>
 
           {/* Modals */}
           <BookingModal 
             isOpen={isBookingModalOpen} 
-            onClose={() => setIsBookingModalOpen(false)} 
+            onClose={handleBookingConfirm} 
             doctor={selectedDoctor} 
           />
           

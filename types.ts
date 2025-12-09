@@ -43,6 +43,18 @@ export interface Appointment {
   status: 'Upcoming' | 'Completed' | 'Cancelled';
 }
 
+export interface AppointmentDisplay {
+  id: number;
+  doctor: string;
+  specialty: string;
+  date: string;
+  time: string;
+  status: string;
+  img: string;
+  location: string;
+  hasReminder?: boolean;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;

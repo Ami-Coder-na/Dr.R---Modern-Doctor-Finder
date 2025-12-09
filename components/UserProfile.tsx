@@ -5,7 +5,8 @@ import {
   User, Mail, Phone, MapPin, Droplet, Calendar, Clock, Edit2, Save, Camera, 
   LogOut, Bell, Package, ShoppingBag, ChevronRight, FileText, Settings, LayoutDashboard
 } from 'lucide-react';
-import AppointmentDetailsModal, { AppointmentDisplay } from './AppointmentDetailsModal';
+import AppointmentDetailsModal from './AppointmentDetailsModal';
+import { AppointmentDisplay } from '../types';
 
 // Mock Data for Orders
 const MOCK_ORDERS = [
@@ -27,42 +28,11 @@ const MOCK_ORDERS = [
   }
 ];
 
-// Mock Data for Appointments
-const MOCK_APPOINTMENTS: AppointmentDisplay[] = [
-  { 
-    id: 1,
-    doctor: 'Dr. Sarah Smith', 
-    specialty: 'Cardiologist', 
-    date: 'Oct 24, 2023', 
-    time: '10:00 AM', 
-    status: 'Completed', 
-    img: 'https://images.unsplash.com/photo-1559839734209-9f91b59f2eee?auto=format&fit=crop&q=80&w=100', 
-    location: 'New York Heart Center'
-  },
-  { 
-    id: 2,
-    doctor: 'Dr. Michael Brown', 
-    specialty: 'Neurologist', 
-    date: 'Nov 12, 2023', 
-    time: '02:30 PM', 
-    status: 'Upcoming', 
-    img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=100', 
-    location: 'City Neuro Institute',
-    hasReminder: true 
-  },
-  { 
-    id: 3,
-    doctor: 'Dr. Lisa Ray', 
-    specialty: 'Dentist', 
-    date: 'Dec 05, 2023', 
-    time: '09:00 AM', 
-    status: 'Upcoming', 
-    img: 'https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?auto=format&fit=crop&q=80&w=100', 
-    location: 'Bright Smiles Dental'
-  }
-];
+interface UserProfileProps {
+  appointments: AppointmentDisplay[];
+}
 
-const UserProfile: React.FC = () => {
+const UserProfile: React.FC<UserProfileProps> = ({ appointments }) => {
   const { user, updateProfile, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'orders' | 'settings'>('dashboard');
   const [isEditing, setIsEditing] = useState(false);
@@ -114,6 +84,9 @@ const UserProfile: React.FC = () => {
       {label}
     </button>
   );
+
+  // Find next upcoming appointment
+  const nextAppointment = appointments.find(a => a.status === 'Upcoming');
 
   return (
     <div className="pt-28 pb-20 bg-slate-50 min-h-screen">
@@ -169,7 +142,7 @@ const UserProfile: React.FC = () => {
                        <div className="p-3 bg-white/20 rounded-2xl"><Calendar className="w-6 h-6" /></div>
                        <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded-lg">+2 this month</span>
                     </div>
-                    <p className="text-3xl font-bold mb-1">12</p>
+                    <p className="text-3xl font-bold mb-1">{appointments.length}</p>
                     <p className="text-blue-100 text-sm">Total Appointments</p>
                   </div>
                   <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
@@ -193,28 +166,34 @@ const UserProfile: React.FC = () => {
                    <div className="flex justify-between items-center mb-6">
                      <h3 className="text-xl font-bold text-slate-900">Next Appointment</h3>
                    </div>
-                   <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group">
-                      <div className="absolute top-0 left-0 w-2 h-full bg-yellow-400"></div>
-                      <img src={MOCK_APPOINTMENTS[1].img} className="w-20 h-20 rounded-2xl object-cover" alt="Doctor" />
-                      <div className="flex-1 text-center md:text-left">
-                        <h4 className="text-lg font-bold text-slate-900">{MOCK_APPOINTMENTS[1].doctor}</h4>
-                        <p className="text-slate-500 mb-3">{MOCK_APPOINTMENTS[1].specialty}</p>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-medium text-slate-700">
-                           <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg"><Calendar className="w-4 h-4 text-slate-400" /> {MOCK_APPOINTMENTS[1].date}</span>
-                           <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg"><Clock className="w-4 h-4 text-slate-400" /> {MOCK_APPOINTMENTS[1].time}</span>
-                           <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg"><MapPin className="w-4 h-4 text-slate-400" /> {MOCK_APPOINTMENTS[1].location}</span>
+                   {nextAppointment ? (
+                    <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-2 h-full bg-yellow-400"></div>
+                        <img src={nextAppointment.img} className="w-20 h-20 rounded-2xl object-cover" alt="Doctor" />
+                        <div className="flex-1 text-center md:text-left">
+                            <h4 className="text-lg font-bold text-slate-900">{nextAppointment.doctor}</h4>
+                            <p className="text-slate-500 mb-3">{nextAppointment.specialty}</p>
+                            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-medium text-slate-700">
+                            <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg"><Calendar className="w-4 h-4 text-slate-400" /> {nextAppointment.date}</span>
+                            <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg"><Clock className="w-4 h-4 text-slate-400" /> {nextAppointment.time}</span>
+                            <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg"><MapPin className="w-4 h-4 text-slate-400" /> {nextAppointment.location}</span>
+                            </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col gap-2 min-w-[140px]">
-                         <button 
-                           onClick={() => setSelectedAppointment(MOCK_APPOINTMENTS[1])}
-                           className="w-full bg-primary-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-primary-700 transition-colors"
-                         >
-                            View Details
-                         </button>
-                         <button className="w-full bg-white border border-slate-200 text-slate-700 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
-                      </div>
-                   </div>
+                        <div className="flex flex-col gap-2 min-w-[140px]">
+                            <button 
+                            onClick={() => setSelectedAppointment(nextAppointment)}
+                            className="w-full bg-primary-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-primary-700 transition-colors"
+                            >
+                                View Details
+                            </button>
+                            <button className="w-full bg-white border border-slate-200 text-slate-700 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
+                        </div>
+                    </div>
+                   ) : (
+                    <div className="bg-white rounded-3xl p-10 border border-slate-100 text-center">
+                        <p className="text-slate-500">No upcoming appointments scheduled.</p>
+                    </div>
+                   )}
                 </div>
               </div>
             )}
@@ -224,7 +203,7 @@ const UserProfile: React.FC = () => {
               <div className="animate-fade-in">
                 <h3 className="text-2xl font-bold text-slate-900 mb-6">My Appointments</h3>
                 <div className="space-y-4">
-                  {MOCK_APPOINTMENTS.map((apt) => (
+                  {appointments.length > 0 ? appointments.map((apt) => (
                     <div key={apt.id} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all">
                        <div className="flex flex-col md:flex-row justify-between gap-6">
                           <div className="flex gap-4">
@@ -260,7 +239,7 @@ const UserProfile: React.FC = () => {
                                    </button>
                                 </div>
                              )}
-                              {apt.status === 'Completed' && (
+                              {(apt.status === 'Completed' || apt.status === 'Cancelled') && (
                                 <div className="flex gap-3 mt-4">
                                    <button 
                                       onClick={() => setSelectedAppointment(apt)}
@@ -273,7 +252,9 @@ const UserProfile: React.FC = () => {
                           </div>
                        </div>
                     </div>
-                  ))}
+                  )) : (
+                     <div className="text-center py-10 text-slate-500">No appointments found.</div>
+                  )}
                 </div>
               </div>
             )}
