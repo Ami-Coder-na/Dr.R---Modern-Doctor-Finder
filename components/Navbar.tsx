@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Stethoscope, ShoppingCart, Bell, Smartphone, Search, User, LogOut, Settings, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 interface NavbarProps {
-  onNavigate: (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact') => void;
+  onNavigate: (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact' | 'checkout') => void;
   onLoginClick: () => void;
 }
 
@@ -20,6 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const { user, isAuthenticated, logout } = useAuth();
+  const { cartCount } = useCart();
 
   // Mock Notifications
   const notifications = [
@@ -122,9 +125,14 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
             
             {/* Icons Group */}
             <div className="flex items-center gap-3 pr-4 border-r border-slate-200">
-              <button className="text-slate-500 hover:text-primary-600 transition-colors p-1.5 hover:bg-slate-50 rounded-full relative group">
+              <button 
+                onClick={() => onNavigate('checkout')}
+                className="text-slate-500 hover:text-primary-600 transition-colors p-1.5 hover:bg-slate-50 rounded-full relative group"
+              >
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-rose-500 rounded-full border border-white"></span>
+                {cartCount > 0 && (
+                    <span className="absolute top-1 right-1 h-2 w-2 bg-rose-500 rounded-full border border-white animate-bounce"></span>
+                )}
               </button>
               
               {/* Notifications Dropdown */}
@@ -237,9 +245,14 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onLoginClick }) => {
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center gap-4">
-            <button className="text-slate-600 relative">
+            <button 
+                onClick={() => onNavigate('checkout')}
+                className="text-slate-600 relative"
+            >
                <ShoppingCart className="h-6 w-6" />
-               <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
+               {cartCount > 0 && (
+                   <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
+               )}
             </button>
             <button onClick={() => setIsOpen(!isOpen)} className="text-slate-800 focus:outline-none p-1 rounded-lg hover:bg-slate-100 transition-colors">
               {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}

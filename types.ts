@@ -1,3 +1,4 @@
+
 export enum Specialty {
   CARDIOLOGIST = 'Cardiologist',
   DERMATOLOGIST = 'Dermatologist',
@@ -46,4 +47,24 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isError?: boolean;
+}
+
+// Medicine Shop Types
+export interface Medicine {
+  id: number;
+  name: string;
+  category: string;
+  rating: number;
+  price: number;
+  oldPrice?: number;
+  image: string;
+  tag?: string;
+  tagColor?: string;
+  description?: string;
+  sku?: string;
+  stock?: boolean;
+}
+
+export interface CartItem extends Medicine {
+  quantity: number;
 }

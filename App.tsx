@@ -1,5 +1,7 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CategoryList from './components/CategoryList';
@@ -19,9 +21,11 @@ import UserProfile from './components/UserProfile';
 import AuthModal from './components/AuthModal';
 import ScrollToTop from './components/ScrollToTop';
 import MedicinePage from './components/MedicinePage';
+import MedicineDetailsPage from './components/MedicineDetailsPage';
+import CheckoutPage from './components/CheckoutPage';
 import ServicesPage from './components/ServicesPage';
 import BlogPage from './components/BlogPage';
-import { Doctor, Specialty } from './types';
+import { Doctor, Specialty, Medicine } from './types';
 import { Search, Filter } from 'lucide-react';
 
 // Mock Data
@@ -133,10 +137,13 @@ const MOCK_DOCTORS: Doctor[] = [
 ];
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'medicine-details' | 'checkout' | 'services' | 'blog' | 'about' | 'contact'>('home');
   const [selectedCategory, setSelectedCategory] = useState<Specialty | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [doctorForDetails, setDoctorForDetails] = useState<Doctor | null>(null);
+  
+  // Medicine Shop State
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   
   // Modals
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -164,13 +171,6 @@ export default function App() {
     fetchDoctors();
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   // Filter logic
   const filteredDoctors = useMemo(() => {
     return doctors.filter(doc => {
@@ -194,7 +194,7 @@ export default function App() {
     });
   }, [selectedCategory, doctors, searchQuery, genderFilter, priceRange]);
 
-  const handleNavigate = (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact') => {
+  const handleNavigate = (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact' | 'checkout') => {
     setCurrentPage(page);
     if (page === 'home') setSelectedCategory(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -217,6 +217,12 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleMedicineClick = (medicine: Medicine) => {
+    setSelectedMedicine(medicine);
+    setCurrentPage('medicine-details');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleAIRecommendation = (text: string) => {
     const foundSpecialty = Object.values(Specialty).find(s => 
       text.toLowerCase().includes(s.toLowerCase())
@@ -230,293 +236,311 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-slate-50 font-sans">
-        <Navbar 
-          onNavigate={handleNavigate} 
-          onLoginClick={() => setIsAuthModalOpen(true)}
-        />
-        
-        {currentPage === 'home' && (
-          <>
-            <Hero onSearchClick={() => handleNavigate('doctors')} />
-            <CategoryList 
-              onSelectCategory={handleCategorySelect} 
-              selectedCategory={selectedCategory} 
-            />
-            <Features />
-            <AboutSection />
-            <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
-            <StatsSection />
-            <TestimonialSection />
-            <FAQSection />
-            <ContactSection />
-          </>
-        )}
-
-        {currentPage === 'user-profile' && <UserProfile />}
-        {currentPage === 'medicine' && <MedicinePage />}
-        {currentPage === 'services' && <ServicesPage />}
-        {currentPage === 'blog' && <BlogPage />}
-        
-        {currentPage === 'about' && (
-           <div className="pt-24 animate-fade-in">
+      <CartProvider>
+        <div className="min-h-screen bg-slate-50 font-sans">
+          <Navbar 
+            onNavigate={handleNavigate} 
+            onLoginClick={() => setIsAuthModalOpen(true)}
+          />
+          
+          {currentPage === 'home' && (
+            <>
+              <Hero onSearchClick={() => handleNavigate('doctors')} />
+              <CategoryList 
+                onSelectCategory={handleCategorySelect} 
+                selectedCategory={selectedCategory} 
+              />
+              <Features />
               <AboutSection />
-              <StatsSection />
               <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
-           </div>
-        )}
-
-        {currentPage === 'contact' && (
-           <div className="pt-24 animate-fade-in">
-              <ContactSection />
+              <StatsSection />
+              <TestimonialSection />
               <FAQSection />
-           </div>
-        )}
+              <ContactSection />
+            </>
+          )}
 
-        {currentPage === 'doctors' && (
-          <div className="pt-32 pb-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
-            <div className="flex flex-col lg:flex-row gap-8">
-              
-              {/* Sidebar Filters */}
-              <div className="lg:w-1/4">
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-28">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-lg text-slate-900 flex items-center">
-                      <Filter className="w-5 h-5 mr-2" /> Filters
-                    </h3>
-                    {(selectedCategory || searchQuery || genderFilter !== 'All') && (
-                      <button 
-                        onClick={() => {
-                          setSelectedCategory(null);
-                          setSearchQuery('');
-                          setGenderFilter('All');
-                          setPriceRange(300);
-                        }}
-                        className="text-xs text-rose-500 font-bold hover:underline"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
+          {currentPage === 'user-profile' && <UserProfile />}
+          {currentPage === 'medicine' && <MedicinePage onProductClick={handleMedicineClick} />}
+          
+          {currentPage === 'medicine-details' && selectedMedicine && (
+            <MedicineDetailsPage 
+              product={selectedMedicine} 
+              onBack={() => handleNavigate('medicine')}
+              onGoToCart={() => handleNavigate('checkout')}
+            />
+          )}
 
-                  {/* Search */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Search</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <input 
-                        type="text" 
-                        placeholder="Doctor, Hospital..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-                      />
+          {currentPage === 'checkout' && (
+            <CheckoutPage 
+              onBack={() => handleNavigate('medicine')}
+              onContinueShopping={() => handleNavigate('medicine')}
+            />
+          )}
+
+          {currentPage === 'services' && <ServicesPage />}
+          {currentPage === 'blog' && <BlogPage />}
+          
+          {currentPage === 'about' && (
+             <div className="pt-24 animate-fade-in">
+                <AboutSection />
+                <StatsSection />
+                <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
+             </div>
+          )}
+
+          {currentPage === 'contact' && (
+             <div className="pt-24 animate-fade-in">
+                <ContactSection />
+                <FAQSection />
+             </div>
+          )}
+
+          {currentPage === 'doctors' && (
+            <div className="pt-32 pb-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+              <div className="flex flex-col lg:flex-row gap-8">
+                
+                {/* Sidebar Filters */}
+                <div className="lg:w-1/4">
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-28">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="font-bold text-lg text-slate-900 flex items-center">
+                        <Filter className="w-5 h-5 mr-2" /> Filters
+                      </h3>
+                      {(selectedCategory || searchQuery || genderFilter !== 'All') && (
+                        <button 
+                          onClick={() => {
+                            setSelectedCategory(null);
+                            setSearchQuery('');
+                            setGenderFilter('All');
+                            setPriceRange(300);
+                          }}
+                          className="text-xs text-rose-500 font-bold hover:underline"
+                        >
+                          Reset
+                        </button>
+                      )}
                     </div>
-                  </div>
 
-                  {/* Categories */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">Specialty</label>
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                      <label className="flex items-center cursor-pointer group">
-                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center mr-3 transition-colors ${!selectedCategory ? 'bg-primary-500 border-primary-500' : 'border-slate-300 bg-white'}`}>
-                            {!selectedCategory && <span className="w-2 h-2 bg-white rounded-full" />}
-                         </div>
-                         <input 
-                           type="radio" 
-                           name="category" 
-                           className="hidden"
-                           checked={!selectedCategory}
-                           onChange={() => setSelectedCategory(null)}
-                         />
-                         <span className={`text-sm ${!selectedCategory ? 'text-primary-700 font-semibold' : 'text-slate-600'}`}>All Specialties</span>
-                      </label>
-                      {Object.values(Specialty).map(spec => (
-                        <label key={spec} className="flex items-center cursor-pointer group">
-                           <div className={`w-5 h-5 rounded-md border flex items-center justify-center mr-3 transition-colors ${selectedCategory === spec ? 'bg-primary-500 border-primary-500' : 'border-slate-300 bg-white group-hover:border-primary-300'}`}>
-                              {selectedCategory === spec && <span className="w-2 h-2 bg-white rounded-full" />}
+                    {/* Search */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Search</label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                        <input 
+                          type="text" 
+                          placeholder="Doctor, Hospital..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Categories */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-semibold text-slate-700 mb-3">Specialty</label>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                        <label className="flex items-center cursor-pointer group">
+                           <div className={`w-5 h-5 rounded-md border flex items-center justify-center mr-3 transition-colors ${!selectedCategory ? 'bg-primary-500 border-primary-500' : 'border-slate-300 bg-white'}`}>
+                              {!selectedCategory && <span className="w-2 h-2 bg-white rounded-full" />}
                            </div>
                            <input 
                              type="radio" 
                              name="category" 
                              className="hidden"
-                             checked={selectedCategory === spec}
-                             onChange={() => setSelectedCategory(spec)}
+                             checked={!selectedCategory}
+                             onChange={() => setSelectedCategory(null)}
                            />
-                           <span className={`text-sm ${selectedCategory === spec ? 'text-primary-700 font-semibold' : 'text-slate-600'}`}>{spec}</span>
+                           <span className={`text-sm ${!selectedCategory ? 'text-primary-700 font-semibold' : 'text-slate-600'}`}>All Specialties</span>
                         </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Gender */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">Gender</label>
-                    <div className="flex gap-2">
-                       {['All', 'Male', 'Female'].map(g => (
-                         <button
-                           key={g}
-                           onClick={() => setGenderFilter(g as any)}
-                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                             genderFilter === g 
-                             ? 'bg-primary-50 border-primary-500 text-primary-700' 
-                             : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-                           }`}
-                         >
-                           {g}
-                         </button>
-                       ))}
-                    </div>
-                  </div>
-
-                  {/* Price Range */}
-                  <div className="mb-2">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-semibold text-slate-700">Max Price</label>
-                      <span className="text-sm font-bold text-primary-600">${priceRange}</span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="50" 
-                      max="500" 
-                      step="10" 
-                      value={priceRange}
-                      onChange={(e) => setPriceRange(parseInt(e.target.value))}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Grid */}
-              <div className="lg:w-3/4">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900">
-                      {selectedCategory ? `${selectedCategory}s` : 'All Specialists'}
-                    </h2>
-                    <p className="text-slate-500 text-sm mt-1">
-                      {isLoadingDoctors 
-                          ? 'Finding best specialists...' 
-                          : `${filteredDoctors.length} doctors match your criteria`
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                {isLoadingDoctors ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {[1, 2, 3, 4, 5, 6].map((i) => (
-                          <DoctorSkeleton key={i} />
-                      ))}
-                  </div>
-                ) : filteredDoctors.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredDoctors.map(doctor => (
-                      <DoctorCard 
-                        key={doctor.id} 
-                        doctor={doctor} 
-                        onBook={handleBook} 
-                        onViewDetails={handleViewDetails}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                        <Search className="w-8 h-8 text-slate-400" />
+                        {Object.values(Specialty).map(spec => (
+                          <label key={spec} className="flex items-center cursor-pointer group">
+                             <div className={`w-5 h-5 rounded-md border flex items-center justify-center mr-3 transition-colors ${selectedCategory === spec ? 'bg-primary-500 border-primary-500' : 'border-slate-300 bg-white group-hover:border-primary-300'}`}>
+                                {selectedCategory === spec && <span className="w-2 h-2 bg-white rounded-full" />}
+                             </div>
+                             <input 
+                               type="radio" 
+                               name="category" 
+                               className="hidden"
+                               checked={selectedCategory === spec}
+                               onChange={() => setSelectedCategory(spec)}
+                             />
+                             <span className={`text-sm ${selectedCategory === spec ? 'text-primary-700 font-semibold' : 'text-slate-600'}`}>{spec}</span>
+                          </label>
+                        ))}
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-2">No doctors found</h3>
-                      <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                        We couldn't find any specialists matching your current filters. Try adjusting your search criteria.
-                      </p>
-                      <button 
-                          onClick={() => {
-                            setSelectedCategory(null);
-                            setSearchQuery('');
-                            setGenderFilter('All');
-                            setPriceRange(500);
-                          }}
-                          className="text-primary-600 font-bold hover:underline bg-primary-50 px-6 py-2 rounded-full"
-                      >
-                          Clear all filters
-                      </button>
+                    </div>
+
+                    {/* Gender */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-semibold text-slate-700 mb-3">Gender</label>
+                      <div className="flex gap-2">
+                         {['All', 'Male', 'Female'].map(g => (
+                           <button
+                             key={g}
+                             onClick={() => setGenderFilter(g as any)}
+                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                               genderFilter === g 
+                               ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                               : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                             }`}
+                           >
+                             {g}
+                           </button>
+                         ))}
+                      </div>
+                    </div>
+
+                    {/* Price Range */}
+                    <div className="mb-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-semibold text-slate-700">Max Price</label>
+                        <span className="text-sm font-bold text-primary-600">${priceRange}</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="50" 
+                        max="500" 
+                        step="10" 
+                        value={priceRange}
+                        onChange={(e) => setPriceRange(parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                      />
+                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Main Grid */}
+                <div className="lg:w-3/4">
+                  <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900">
+                        {selectedCategory ? `${selectedCategory}s` : 'All Specialists'}
+                      </h2>
+                      <p className="text-slate-500 text-sm mt-1">
+                        {isLoadingDoctors 
+                            ? 'Finding best specialists...' 
+                            : `${filteredDoctors.length} doctors match your criteria`
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  {isLoadingDoctors ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <DoctorSkeleton key={i} />
+                        ))}
+                    </div>
+                  ) : filteredDoctors.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredDoctors.map(doctor => (
+                        <DoctorCard 
+                          key={doctor.id} 
+                          doctor={doctor} 
+                          onBook={handleBook} 
+                          onViewDetails={handleViewDetails}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                          <Search className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">No doctors found</h3>
+                        <p className="text-slate-500 mb-6 max-w-md mx-auto">
+                          We couldn't find any specialists matching your current filters. Try adjusting your search criteria.
+                        </p>
+                        <button 
+                            onClick={() => {
+                              setSelectedCategory(null);
+                              setSearchQuery('');
+                              setGenderFilter('All');
+                              setPriceRange(500);
+                            }}
+                            className="text-primary-600 font-bold hover:underline bg-primary-50 px-6 py-2 rounded-full"
+                        >
+                            Clear all filters
+                        </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {currentPage === 'doctor-details' && doctorForDetails && (
-          <DoctorDetails 
-            doctor={doctorForDetails} 
-            onBook={handleBook}
-            onBack={() => handleNavigate('doctors')}
+          {currentPage === 'doctor-details' && doctorForDetails && (
+            <DoctorDetails 
+              doctor={doctorForDetails} 
+              onBook={handleBook}
+              onBack={() => handleNavigate('doctors')}
+            />
+          )}
+
+          {/* Footer */}
+          <footer className="bg-slate-900 text-slate-300 py-16">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
+              <div className="col-span-1 md:col-span-1">
+                 <span className="font-bold text-2xl text-white">Dr.<span className="text-primary-500">R</span></span>
+                 <p className="mt-6 text-sm leading-relaxed text-slate-400">
+                   Dr.R is a pioneering healthcare platform connecting patients with top-tier specialists through AI-driven recommendations and instant booking.
+                 </p>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold mb-6">Services</h4>
+                <ul className="space-y-4 text-sm text-slate-400">
+                    <li onClick={() => handleNavigate('doctors')} className="hover:text-primary-400 cursor-pointer transition-colors">Find Doctors</li>
+                    <li onClick={() => handleNavigate('medicine')} className="hover:text-primary-400 cursor-pointer transition-colors">Medicine Shop</li>
+                    <li onClick={() => handleNavigate('services')} className="hover:text-primary-400 cursor-pointer transition-colors">Our Services</li>
+                    <li onClick={() => handleNavigate('blog')} className="hover:text-primary-400 cursor-pointer transition-colors">Health Blog</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold mb-6">Company</h4>
+                <ul className="space-y-4 text-sm text-slate-400">
+                    <li onClick={() => handleNavigate('about')} className="hover:text-primary-400 cursor-pointer transition-colors">About Us</li>
+                    <li className="hover:text-primary-400 cursor-pointer transition-colors">Careers</li>
+                    <li className="hover:text-primary-400 cursor-pointer transition-colors">Privacy Policy</li>
+                    <li className="hover:text-primary-400 cursor-pointer transition-colors">Terms of Service</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold mb-6">Contact</h4>
+                <ul className="space-y-4 text-sm text-slate-400">
+                    <li>support@dr-r.com</li>
+                    <li>+1 (555) 123-4567</li>
+                    <li>123 Medical Plaza, NY</li>
+                </ul>
+              </div>
+            </div>
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+                <p>© {new Date().getFullYear()} Dr.R Healthcare. All rights reserved.</p>
+                <div className="flex space-x-6 mt-4 md:mt-0">
+                   <span className="cursor-pointer hover:text-white transition-colors">Twitter</span>
+                   <span className="cursor-pointer hover:text-white transition-colors">LinkedIn</span>
+                   <span className="cursor-pointer hover:text-white transition-colors">Instagram</span>
+                </div>
+            </div>
+          </footer>
+
+          {/* Modals */}
+          <BookingModal 
+            isOpen={isBookingModalOpen} 
+            onClose={() => setIsBookingModalOpen(false)} 
+            doctor={selectedDoctor} 
           />
-        )}
+          
+          <AuthModal 
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+          />
 
-        {/* Footer */}
-        <footer className="bg-slate-900 text-slate-300 py-16">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="col-span-1 md:col-span-1">
-               <span className="font-bold text-2xl text-white">Dr.<span className="text-primary-500">R</span></span>
-               <p className="mt-6 text-sm leading-relaxed text-slate-400">
-                 Dr.R is a pioneering healthcare platform connecting patients with top-tier specialists through AI-driven recommendations and instant booking.
-               </p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-6">Services</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                  <li onClick={() => handleNavigate('doctors')} className="hover:text-primary-400 cursor-pointer transition-colors">Find Doctors</li>
-                  <li onClick={() => handleNavigate('medicine')} className="hover:text-primary-400 cursor-pointer transition-colors">Medicine Shop</li>
-                  <li onClick={() => handleNavigate('services')} className="hover:text-primary-400 cursor-pointer transition-colors">Our Services</li>
-                  <li onClick={() => handleNavigate('blog')} className="hover:text-primary-400 cursor-pointer transition-colors">Health Blog</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-6">Company</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                  <li onClick={() => handleNavigate('about')} className="hover:text-primary-400 cursor-pointer transition-colors">About Us</li>
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Careers</li>
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Privacy Policy</li>
-                  <li className="hover:text-primary-400 cursor-pointer transition-colors">Terms of Service</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-6">Contact</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                  <li>support@dr-r.com</li>
-                  <li>+1 (555) 123-4567</li>
-                  <li>123 Medical Plaza, NY</li>
-              </ul>
-            </div>
-          </div>
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
-              <p>© {new Date().getFullYear()} Dr.R Healthcare. All rights reserved.</p>
-              <div className="flex space-x-6 mt-4 md:mt-0">
-                 <span className="cursor-pointer hover:text-white transition-colors">Twitter</span>
-                 <span className="cursor-pointer hover:text-white transition-colors">LinkedIn</span>
-                 <span className="cursor-pointer hover:text-white transition-colors">Instagram</span>
-              </div>
-          </div>
-        </footer>
-
-        {/* Modals */}
-        <BookingModal 
-          isOpen={isBookingModalOpen} 
-          onClose={() => setIsBookingModalOpen(false)} 
-          doctor={selectedDoctor} 
-        />
-        
-        <AuthModal 
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-        />
-
-        <AIAssistant onRecommendation={handleAIRecommendation} />
-        <ScrollToTop />
-      </div>
+          <AIAssistant onRecommendation={handleAIRecommendation} />
+          <ScrollToTop />
+        </div>
+      </CartProvider>
     </AuthProvider>
   );
 }
