@@ -3,10 +3,13 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CategoryList from './components/CategoryList';
 import Features from './components/Features';
+import AboutSection from './components/AboutSection';
+import TeamSection from './components/TeamSection';
 import DoctorCard from './components/DoctorCard';
 import DoctorSkeleton from './components/DoctorSkeleton';
 import BookingModal from './components/BookingModal';
 import AIAssistant from './components/AIAssistant';
+import DoctorDetails from './components/DoctorDetails';
 import { Doctor, Specialty } from './types';
 
 // Mock Data
@@ -15,7 +18,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '1',
     name: 'Dr. Sarah Smith',
     specialty: Specialty.CARDIOLOGIST,
-    image: 'https://picsum.photos/seed/doctor1/300/300',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea860630?auto=format&fit=crop&q=80&w=800',
     rating: 4.9,
     reviews: 124,
     experience: 15,
@@ -28,7 +31,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '2',
     name: 'Dr. John Doe',
     specialty: Specialty.DERMATOLOGIST,
-    image: 'https://picsum.photos/seed/doctor2/300/300',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=800',
     rating: 4.7,
     reviews: 89,
     experience: 8,
@@ -41,7 +44,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '3',
     name: 'Dr. Emily Chen',
     specialty: Specialty.PEDIATRICIAN,
-    image: 'https://picsum.photos/seed/doctor3/300/300',
+    image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=800',
     rating: 4.9,
     reviews: 210,
     experience: 12,
@@ -54,7 +57,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '4',
     name: 'Dr. Michael Brown',
     specialty: Specialty.NEUROLOGIST,
-    image: 'https://picsum.photos/seed/doctor4/300/300',
+    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=800',
     rating: 4.8,
     reviews: 150,
     experience: 20,
@@ -67,7 +70,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '5',
     name: 'Dr. Alan Grant',
     specialty: Specialty.ORTHOPEDIC,
-    image: 'https://picsum.photos/seed/doctor5/300/300',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
     rating: 4.6,
     reviews: 75,
     experience: 10,
@@ -80,7 +83,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '6',
     name: 'Dr. Lisa Ray',
     specialty: Specialty.DENTIST,
-    image: 'https://picsum.photos/seed/doctor6/300/300',
+    image: 'https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?auto=format&fit=crop&q=80&w=800',
     rating: 4.9,
     reviews: 300,
     experience: 7,
@@ -93,7 +96,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '7',
     name: 'Dr. Robert House',
     specialty: Specialty.GENERAL_PHYSICIAN,
-    image: 'https://picsum.photos/seed/doctor7/300/300',
+    image: 'https://images.unsplash.com/photo-1582750433449-d22b1274be8b?auto=format&fit=crop&q=80&w=800',
     rating: 4.5,
     reviews: 500,
     experience: 25,
@@ -106,7 +109,7 @@ const MOCK_DOCTORS: Doctor[] = [
     id: '8',
     name: 'Dr. Hannibal Lecter',
     specialty: Specialty.PSYCHIATRIST,
-    image: 'https://picsum.photos/seed/doctor8/300/300',
+    image: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&q=80&w=800',
     rating: 5.0,
     reviews: 1000,
     experience: 30,
@@ -118,9 +121,10 @@ const MOCK_DOCTORS: Doctor[] = [
 ];
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'doctors'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details'>('home');
   const [selectedCategory, setSelectedCategory] = useState<Specialty | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [doctorForDetails, setDoctorForDetails] = useState<Doctor | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
@@ -155,6 +159,12 @@ export default function App() {
     setIsBookingModalOpen(true);
   };
 
+  const handleViewDetails = (doctor: Doctor) => {
+    setDoctorForDetails(doctor);
+    setCurrentPage('doctor-details');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleCategorySelect = (specialty: Specialty) => {
     setSelectedCategory(specialty);
     setCurrentPage('doctors');
@@ -175,12 +185,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      <Navbar onNavigate={handleNavigate} />
+      <Navbar onNavigate={(page) => handleNavigate(page as 'home' | 'doctors')} />
       
       {currentPage === 'home' && (
         <>
           <Hero onSearchClick={() => handleNavigate('doctors')} />
           <Features />
+          <AboutSection />
+          <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
           <CategoryList 
             onSelectCategory={handleCategorySelect} 
             selectedCategory={selectedCategory} 
@@ -189,7 +201,7 @@ export default function App() {
       )}
 
       {currentPage === 'doctors' && (
-        <div className="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+        <div className="pt-24 pb-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div>
               <h2 className="text-3xl font-bold text-slate-900">
@@ -243,9 +255,17 @@ export default function App() {
         </div>
       )}
 
+      {currentPage === 'doctor-details' && doctorForDetails && (
+        <DoctorDetails 
+          doctor={doctorForDetails} 
+          onBook={handleBook}
+          onBack={() => handleNavigate('home')}
+        />
+      )}
+
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-300 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-1">
              <span className="font-bold text-2xl text-white">Dr.<span className="text-primary-500">R</span></span>
              <p className="mt-6 text-sm leading-relaxed text-slate-400">
@@ -279,7 +299,7 @@ export default function App() {
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
             <p>© {new Date().getFullYear()} Dr.R Healthcare. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
                <span className="cursor-pointer hover:text-white transition-colors">Twitter</span>

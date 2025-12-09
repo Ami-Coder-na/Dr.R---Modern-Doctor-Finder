@@ -1,11 +1,27 @@
-import React from 'react';
-import { ShieldCheck, Star, Users, ArrowRight, Play, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, Star, ArrowRight, Play, Calendar } from 'lucide-react';
 
 interface HeroProps {
   onSearchClick: () => void;
 }
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=800"
+];
+
 const Hero: React.FC<HeroProps> = ({ onSearchClick }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % HERO_IMAGES.length);
+    }, 30000); // Change image every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
       
@@ -16,7 +32,7 @@ const Hero: React.FC<HeroProps> = ({ onSearchClick }) => {
         <div className="absolute top-[40%] left-[20%] w-32 h-32 bg-yellow-100/60 rounded-full blur-[60px]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
           
           {/* Text Content */}
@@ -76,9 +92,10 @@ const Hero: React.FC<HeroProps> = ({ onSearchClick }) => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary-100 to-blue-50 rounded-[3rem] rotate-6 transform scale-95 translate-y-4 -z-10"></div>
                 
                 <img 
-                  src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800"
+                  key={currentImageIndex}
+                  src={HERO_IMAGES[currentImageIndex]}
                   alt="Professional Doctor" 
-                  className="relative rounded-[2.5rem] shadow-2xl object-cover w-full h-[650px] z-10"
+                  className="relative rounded-[2.5rem] shadow-2xl object-cover w-full h-[650px] z-10 transition-opacity duration-500 animate-[fadeIn_0.5s_ease-in-out]"
                 />
                 
                 {/* Floating Glass Card 1 - Review */}
@@ -97,7 +114,7 @@ const Hero: React.FC<HeroProps> = ({ onSearchClick }) => {
                     "Dr.R helped me find a specialist in minutes. Highly recommended!"
                   </p>
                   <div className="mt-3 flex items-center gap-2">
-                     <img src="https://i.pravatar.cc/100?img=32" alt="User" className="w-6 h-6 rounded-full" />
+                     <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100" alt="User" className="w-6 h-6 rounded-full object-cover" />
                      <span className="text-xs text-slate-500">Sarah K.</span>
                   </div>
                 </div>
@@ -119,9 +136,9 @@ const Hero: React.FC<HeroProps> = ({ onSearchClick }) => {
                  <div className="absolute top-[40%] -right-12 bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/60 z-20 animate-float" style={{ animationDelay: '4s' }}>
                    <p className="text-xs font-semibold text-slate-500 mb-2 text-center">Active Doctors</p>
                    <div className="flex -space-x-2 justify-center">
-                     <img className="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100" src="https://i.pravatar.cc/100?img=11" alt="" />
-                     <img className="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100" src="https://i.pravatar.cc/100?img=68" alt="" />
-                     <img className="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100" src="https://i.pravatar.cc/100?img=33" alt="" />
+                     <img className="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100" alt="" />
+                     <img className="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100 object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100&h=100" alt="" />
+                     <img className="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100 object-cover" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100" alt="" />
                      <div className="w-8 h-8 rounded-full border-2 border-white bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-700 ring-1 ring-slate-100">50+</div>
                    </div>
                 </div>
