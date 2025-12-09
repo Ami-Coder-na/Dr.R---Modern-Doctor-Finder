@@ -5,6 +5,7 @@ import {
   User, Mail, Phone, MapPin, Droplet, Calendar, Clock, Edit2, Save, Camera, 
   LogOut, Bell, Package, ShoppingBag, ChevronRight, FileText, Settings, LayoutDashboard
 } from 'lucide-react';
+import AppointmentDetailsModal, { AppointmentDisplay } from './AppointmentDetailsModal';
 
 // Mock Data for Orders
 const MOCK_ORDERS = [
@@ -27,7 +28,7 @@ const MOCK_ORDERS = [
 ];
 
 // Mock Data for Appointments
-const MOCK_APPOINTMENTS = [
+const MOCK_APPOINTMENTS: AppointmentDisplay[] = [
   { 
     id: 1,
     doctor: 'Dr. Sarah Smith', 
@@ -65,6 +66,7 @@ const UserProfile: React.FC = () => {
   const { user, updateProfile, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'orders' | 'settings'>('dashboard');
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDisplay | null>(null);
   
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -204,7 +206,12 @@ const UserProfile: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 min-w-[140px]">
-                         <button className="w-full bg-primary-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-primary-700 transition-colors">Reschedule</button>
+                         <button 
+                           onClick={() => setSelectedAppointment(MOCK_APPOINTMENTS[1])}
+                           className="w-full bg-primary-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-primary-700 transition-colors"
+                         >
+                            View Details
+                         </button>
                          <button className="w-full bg-white border border-slate-200 text-slate-700 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
                       </div>
                    </div>
@@ -245,7 +252,22 @@ const UserProfile: React.FC = () => {
                                        <Bell className="w-3 h-3 mr-1" /> Reminder On
                                      </span>
                                    )}
-                                   <button className="text-sm font-bold text-primary-600 hover:underline">View Details</button>
+                                   <button 
+                                      onClick={() => setSelectedAppointment(apt)}
+                                      className="text-sm font-bold text-primary-600 hover:underline"
+                                   >
+                                      View Details
+                                   </button>
+                                </div>
+                             )}
+                              {apt.status === 'Completed' && (
+                                <div className="flex gap-3 mt-4">
+                                   <button 
+                                      onClick={() => setSelectedAppointment(apt)}
+                                      className="text-sm font-bold text-slate-500 hover:text-slate-800"
+                                   >
+                                      View Details
+                                   </button>
                                 </div>
                              )}
                           </div>
@@ -322,6 +344,14 @@ const UserProfile: React.FC = () => {
 
           </div>
         </div>
+
+        {/* Appointment Details Modal */}
+        <AppointmentDetailsModal 
+           appointment={selectedAppointment} 
+           isOpen={!!selectedAppointment} 
+           onClose={() => setSelectedAppointment(null)} 
+        />
+
       </div>
     </div>
   );

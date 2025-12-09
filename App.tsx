@@ -22,6 +22,7 @@ import AuthModal from './components/AuthModal';
 import ScrollToTop from './components/ScrollToTop';
 import MedicinePage from './components/MedicinePage';
 import MedicineDetailsPage from './components/MedicineDetailsPage';
+import AllMedicinePage from './components/AllMedicinePage';
 import CheckoutPage from './components/CheckoutPage';
 import ServicesPage from './components/ServicesPage';
 import BlogPage from './components/BlogPage';
@@ -137,7 +138,7 @@ const MOCK_DOCTORS: Doctor[] = [
 ];
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'medicine-details' | 'checkout' | 'services' | 'blog' | 'about' | 'contact'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'doctors' | 'doctor-details' | 'user-profile' | 'medicine' | 'medicine-details' | 'all-medicine' | 'checkout' | 'services' | 'blog' | 'about' | 'contact'>('home');
   const [selectedCategory, setSelectedCategory] = useState<Specialty | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [doctorForDetails, setDoctorForDetails] = useState<Doctor | null>(null);
@@ -194,7 +195,7 @@ export default function App() {
     });
   }, [selectedCategory, doctors, searchQuery, genderFilter, priceRange]);
 
-  const handleNavigate = (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact' | 'checkout') => {
+  const handleNavigate = (page: 'home' | 'doctors' | 'user-profile' | 'medicine' | 'services' | 'blog' | 'about' | 'contact' | 'checkout' | 'all-medicine') => {
     setCurrentPage(page);
     if (page === 'home') setSelectedCategory(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -261,7 +262,19 @@ export default function App() {
           )}
 
           {currentPage === 'user-profile' && <UserProfile />}
-          {currentPage === 'medicine' && <MedicinePage onProductClick={handleMedicineClick} />}
+          
+          {currentPage === 'medicine' && (
+            <MedicinePage 
+              onProductClick={handleMedicineClick} 
+              onViewAll={() => handleNavigate('all-medicine')}
+            />
+          )}
+
+          {currentPage === 'all-medicine' && (
+            <AllMedicinePage 
+              onProductClick={handleMedicineClick}
+            />
+          )}
           
           {currentPage === 'medicine-details' && selectedMedicine && (
             <MedicineDetailsPage 

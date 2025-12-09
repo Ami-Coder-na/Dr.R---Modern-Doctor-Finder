@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Doctor } from '../types';
 import { X, Calendar, Clock, User, Phone, CheckCircle, ChevronRight, ChevronLeft, Bell } from 'lucide-react';
@@ -268,13 +269,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ doctor, isOpen, onClose }) 
                              </div>
                         )}
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-2">
-                            <button className="px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-1">
-                                Add to Calendar
-                            </button>
+                        <div className="flex justify-center mt-2">
                             <button 
                                 onClick={reset}
-                                className="px-8 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                                className="px-8 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors w-full sm:w-auto"
                             >
                                 Close Window
                             </button>
