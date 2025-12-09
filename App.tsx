@@ -161,6 +161,13 @@ export default function App() {
     fetchDoctors();
   }, []);
 
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   // Filter logic
   const filteredDoctors = useMemo(() => {
     return doctors.filter(doc => {
@@ -233,13 +240,19 @@ export default function App() {
               onSelectCategory={handleCategorySelect} 
               selectedCategory={selectedCategory} 
             />
-            <Features />
-            <AboutSection />
+            <div id="services">
+              <Features />
+            </div>
+            <div id="about">
+              <AboutSection />
+            </div>
             <TeamSection onBook={handleBook} onViewDetails={handleViewDetails} />
             <StatsSection />
             <TestimonialSection />
             <FAQSection />
-            <ContactSection />
+            <div id="contact">
+              <ContactSection />
+            </div>
           </>
         )}
 
@@ -391,6 +404,7 @@ export default function App() {
                         key={doctor.id} 
                         doctor={doctor} 
                         onBook={handleBook} 
+                        onViewDetails={handleViewDetails}
                       />
                     ))}
                   </div>

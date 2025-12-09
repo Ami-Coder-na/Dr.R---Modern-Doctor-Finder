@@ -1,13 +1,14 @@
 import React from 'react';
 import { Doctor } from '../types';
-import { Star, MapPin, Briefcase } from 'lucide-react';
+import { Star, MapPin, Briefcase, Eye } from 'lucide-react';
 
 interface DoctorCardProps {
   doctor: Doctor;
   onBook: (doctor: Doctor) => void;
+  onViewDetails?: (doctor: Doctor) => void;
 }
 
-const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBook }) => {
+const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBook, onViewDetails }) => {
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       <div className="relative h-48 bg-slate-200">
@@ -51,12 +52,23 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBook }) => {
                 <p className="text-xs text-slate-500">Consultation Fee</p>
                 <p className="font-bold text-lg text-primary-600">${doctor.price}</p>
             </div>
-            <button 
-                onClick={() => onBook(doctor)}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-                Book Visit
-            </button>
+            <div className="flex gap-2">
+                {onViewDetails && (
+                    <button 
+                        onClick={() => onViewDetails(doctor)}
+                        className="p-2.5 rounded-lg border border-slate-200 text-slate-500 hover:text-primary-600 hover:border-primary-500 hover:bg-primary-50 transition-all"
+                        title="View Details"
+                    >
+                        <Eye className="w-5 h-5" />
+                    </button>
+                )}
+                <button 
+                    onClick={() => onBook(doctor)}
+                    className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                    Book Visit
+                </button>
+            </div>
         </div>
       </div>
     </div>

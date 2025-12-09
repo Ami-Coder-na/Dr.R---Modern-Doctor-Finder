@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Phone, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Mail, Lock, User, Phone, ArrowRight, Loader2, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
@@ -162,8 +162,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {mode === 'login' && (
-                <div className="flex justify-end">
-                  <button type="button" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+                <div className="flex items-center justify-between">
+                  <button 
+                      type="button"
+                      onClick={() => {
+                        setEmail('john@example.com');
+                        setPassword('secret123');
+                      }}
+                      className="flex items-center text-xs font-bold text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
+                  >
+                     <KeyRound className="w-3 h-3 mr-1.5" />
+                     Demo Login
+                  </button>
+                  <button type="button" className="text-sm font-medium text-slate-500 hover:text-slate-800">
                     Forgot Password?
                   </button>
                 </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Doctor } from '../types';
 import { Star, MapPin, Briefcase, Clock, Calendar, ArrowLeft, ShieldCheck, Award, ThumbsUp } from 'lucide-react';
 
@@ -9,6 +9,19 @@ interface DoctorDetailsProps {
 }
 
 const DoctorDetails: React.FC<DoctorDetailsProps> = ({ doctor, onBook, onBack }) => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Generate next 14 days
+  const upcomingDates = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  const isSameDate = (d1: Date, d2: Date) => {
+      return d1.toDateString() === d2.toDateString();
+  };
+
   return (
     <div className="pt-24 pb-12 bg-slate-50 min-h-screen animate-fade-in-up">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -163,20 +176,73 @@ const DoctorDetails: React.FC<DoctorDetailsProps> = ({ doctor, onBook, onBack })
                 Availability & Booking
               </h2>
               
+              {/* Date Selection */}
+              <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-bold text-slate-700">Select Date</p>
+                      <div className="relative overflow-hidden rounded-lg">
+                          <input 
+                              type="date" 
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                              onChange={(e) => {
+                                  if(e.target.valueAsDate) setSelectedDate(e.target.valueAsDate);
+                              }} 
+                          />
+                          <button className="flex items-center text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-2 rounded-lg transition-colors pointer-events-none">
+                              <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                              Custom Date
+                          </button>
+                      </div>
+                  </div>
+                  
+                  <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2">
+                      {upcomingDates.map((date, index) => {
+                          const isSelected = isSameDate(date, selectedDate);
+                          return (
+                              <button
+                                  key={index}
+                                  onClick={() => setSelectedDate(date)}
+                                  className={`flex-shrink-0 flex flex-col items-center justify-center min-w-[4.5rem] h-20 rounded-2xl border transition-all duration-200
+                                      ${isSelected 
+                                          ? 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-900/20 transform scale-105' 
+                                          : 'bg-white border-slate-200 text-slate-600 hover:border-primary-300 hover:bg-slate-50'
+                                      }
+                                  `}
+                              >
+                                  <span className={`text-xs font-semibold uppercase mb-1 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                                      {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                                  </span>
+                                  <span className="text-xl font-bold">
+                                      {date.getDate()}
+                                  </span>
+                              </button>
+                          )
+                      })}
+                  </div>
+              </div>
+
               <div className="mb-6">
-                <p className="text-sm text-slate-500 mb-3">Available Time Slots for Today:</p>
+                <p className="text-sm font-bold text-slate-700 mb-3">
+                    Available Slots on <span className="text-primary-600">{selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
+                </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {doctor.availability.map((time, index) => (
-                    <div key={index} className="flex items-center justify-center border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50 cursor-pointer transition-all">
+                    <button 
+                        key={index} 
+                        onClick={() => onBook(doctor)}
+                        className="flex items-center justify-center border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50 cursor-pointer transition-all hover:shadow-sm active:scale-95"
+                    >
                       <Clock className="w-4 h-4 mr-2" />
                       {time}
-                    </div>
+                    </button>
                   ))}
-                  {/* Mock extra slots for display */}
-                  <div className="flex items-center justify-center border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50 cursor-pointer transition-all">
+                  <button 
+                    onClick={() => onBook(doctor)}
+                    className="flex items-center justify-center border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50 cursor-pointer transition-all hover:shadow-sm active:scale-95"
+                  >
                     <Clock className="w-4 h-4 mr-2" />
                     06:00 PM
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -184,14 +250,14 @@ const DoctorDetails: React.FC<DoctorDetailsProps> = ({ doctor, onBook, onBack })
                  <ThumbsUp className="w-5 h-5 text-blue-600 mt-1" />
                  <div>
                    <p className="font-bold text-blue-900">High Demand Specialist</p>
-                   <p className="text-sm text-blue-700">Dr. {doctor.name} is highly rated. We recommend booking your appointment at least 2 days in advance.</p>
+                   <p className="text-sm text-blue-700">Dr. {doctor.name} is highly rated. We recommend booking your appointment early.</p>
                  </div>
               </div>
 
               <div className="mt-8 pt-8 border-t border-slate-100 flex justify-end">
                  <button 
                   onClick={() => onBook(doctor)}
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary-500/30"
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary-500/30 w-full sm:w-auto"
                 >
                   Book Visit Now
                 </button>
